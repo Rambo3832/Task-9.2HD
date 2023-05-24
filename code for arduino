@@ -1,0 +1,136 @@
+char input;       // to store input character received via BT.
+
+boolean isCustomRun = false;
+int customRunTime = 0;
+long customRunStartTime = 0;
+
+void setup()
+{
+  Serial.begin(9600);
+
+  pinMode(4, OUTPUT);
+  pinMode(6, OUTPUT);
+  pinMode(10, OUTPUT);
+  pinMode(11, OUTPUT);
+}
+
+void loop()
+{
+  if (Serial.available() > 0)
+  {
+    input = Serial.read();
+
+    switch (input)
+    {
+      case 'F':
+        Forward();
+        break;
+      case 'G':
+        Backward();
+        break;
+      case 'L':
+        Left();
+        break;
+      case 'R':
+        Right();
+        break;
+      case 'S':
+        Stop();
+        break;
+      case 'C':
+        customRun();
+        break;
+    }
+  }
+}
+
+void customRun()
+{
+  String command;
+
+  while (Serial.available() == 0)
+  {
+    // Wait for data to be available
+  }
+
+  while (Serial.available() > 0)
+  {
+    command += Serial.read();
+    delay(10);
+  }
+
+  int separatorIndex = command.indexOf('-');
+
+  if (separatorIndex != -1)
+  {
+    String direction = command.substring(0, separatorIndex);
+    String timeStr = command.substring(separatorIndex + 1);
+
+    int time = timeStr.toInt();
+
+    if (direction == "Forward")
+    {
+      Forward();
+      delay(time * 1000);
+      Stop();
+    }
+    else if (direction == "Backward")
+    {
+      Backward();
+      delay(time * 1000);
+      Stop();
+    }
+    else if (direction == "Right")
+    {
+      Right();
+      delay(time * 1000);
+      Stop();
+    }
+    else if (direction == "Left")
+    {
+      Left();
+      delay(time * 1000);
+      Stop();
+    }
+  }
+}
+
+void Forward()
+{
+  digitalWrite(6, LOW);
+  digitalWrite(4, HIGH);
+  digitalWrite(10, HIGH);
+  digitalWrite(11, LOW);
+}
+
+void Stop()
+{
+  digitalWrite(6, LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(10, LOW);
+  digitalWrite(11, LOW);
+}
+
+void Backward()
+{
+  digitalWrite(6, HIGH);
+  digitalWrite(4, LOW);
+  digitalWrite(10, LOW);
+  digitalWrite(11, HIGH);
+}
+
+void Right()
+{
+  digitalWrite(6, HIGH);
+  digitalWrite(4, LOW);
+  digitalWrite(10, HIGH);
+  digitalWrite(11, LOW);
+}
+
+void Left()
+{
+  digitalWrite(6, LOW);
+  digitalWrite(4, HIGH);
+  digitalWrite(10, LOW);
+  digitalWrite(11, HIGH);
+}
