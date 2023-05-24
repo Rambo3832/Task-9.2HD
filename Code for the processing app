@@ -1,0 +1,172 @@
+import controlP5.*;
+import processing.serial.*;
+
+Serial port;
+
+ControlP5 cp5;
+PFont font;
+
+boolean isOpen = false;
+boolean isCustomRun = false;
+int customRunTime = 0;
+long customRunStartTime = 0;
+
+void setup() {
+  size(600, 750);
+
+  printArray(Serial.list());
+
+  port = new Serial(this, "COM22", 9600);
+
+  cp5 = new ControlP5(this);
+  font = createFont("calibri", 36);
+  cp5.setFont(font);
+
+  cp5.addButton("ForwardButton")
+     .setPosition(100, 50)
+     .setSize(200, 50)
+     .setCaptionLabel("FORWARD");
+
+  cp5.addButton("BackwardButton")
+     .setPosition(100, 150)
+     .setSize(200, 50)
+     .setCaptionLabel("BACKWARD");
+
+  cp5.addButton("LeftButton")
+     .setPosition(100, 250)
+     .setSize(200, 50)
+     .setCaptionLabel("LEFT");
+
+  cp5.addButton("RightButton")
+     .setPosition(100, 350)
+     .setSize(200, 50)
+     .setCaptionLabel("RIGHT");
+
+  cp5.addButton("StopButton")
+     .setPosition(100, 450)
+     .setSize(200, 50)
+     .setCaptionLabel("STOP");
+     
+   cp5.addButton("CustomRunButton")
+     .setPosition(100, 550)
+     .setSize(200, 50)
+     .setCaptionLabel("Custom Run");
+
+  cp5.addTextfield("CustomRunField")
+     .setPosition(100, 650)
+     .setSize(200, 40)
+     .setFont(createFont("calibri", 20))
+     .setFocus(true)
+     .setColor(color(255, 255, 255))
+     .setColorBackground(color(60, 60, 60));
+}
+
+void draw() {
+  background(100);
+  fill(255);
+  textFont(font);
+
+  if (isCustomRun && millis() - customRunStartTime >= customRunTime * 1000) {
+    Stop();
+    isCustomRun = false;
+  }
+}
+
+void Forward() {
+  port.write('F');
+}
+
+void Backward() {
+  port.write('G');
+}
+
+void Left() {
+  port.write('L');
+}
+
+void Right() {
+  port.write('R');
+}
+
+void Stop() {
+  port.write('S');
+}
+
+void CustomRun() {
+  port.write('C');
+}
+
+void ForwardButton() {
+  Forward();
+}
+
+void RightButton() {
+  Right();
+}
+
+void LeftButton() {
+  Left();
+}
+
+void StopButton() {
+  Stop();
+}
+
+void BackwardButton() {
+  Backward();
+}
+
+void CustomRunButton() {
+  String customRunInput = cp5.get(Textfield.class, "CustomRunField").getText();
+  String[] parts = customRunInput.split("-");
+  if (parts.length == 2) {
+    String direction = parts[0];
+    int time = Integer.parseInt(parts[1]);
+    CustomRunCommand(direction, time);
+  }
+}
+
+void CustomRunCommand(String direction, int time) {
+  customRunTime = time;
+  customRunStartTime = millis();
+  isCustomRun = true;
+
+  switch (direction) {
+    case "Forward":
+      Forward();
+      break;
+    case "Backward":
+      Backward();
+      break;
+    case "Left":
+      Left();
+      break;
+    case "Right":
+      Right();
+      break;
+    default:
+      Stop();
+      break;
+  }
+}
+
+void controlEvent(ControlEvent event) {
+  if (event.isFrom(cp5.getController("CustomRunField"))) {
+    if (event.getName().equals("CustomRunField")) {
+      String input = event.getStringValue();
+      if (input != null && input.contains("-")) {
+        String[] parts = input.split("-");
+        if (parts.length == 2 && isValidDirection(parts[0])) {
+          int time = Integer.parseInt(parts[1]);
+          CustomRunCommand(parts[0], time);
+        }
+      }
+    }
+  }
+}
+
+boolean isValidDirection(String direction) {
+  return direction.equals("Forward") || direction.equals("Backward") ||
+    direction.equals("Left") || direction.equals("Right");
+}
+  
